@@ -49,7 +49,6 @@ export const generateModel = (model: DMMF.Model, config: Config) => {
   return {
     name: model.name,
     definition: ts.factory.createTypeAliasDeclaration(
-      undefined,
       [ts.factory.createModifier(ts.SyntaxKind.ExportKeyword)],
       ts.factory.createIdentifier(model.name),
       undefined,
