@@ -13,6 +13,14 @@ const defaultTypesImplementedInJS = ["cuid", "uuid"];
 
 export const generateModel = (model: DMMF.Model, config: Config) => {
   const properties = model.fields.flatMap((field) => {
+    const isGenerated =
+      field.hasDefaultValue &&
+      !(
+        typeof field.default === "object" &&
+        "name" in field.default &&
+        defaultTypesImplementedInJS.includes(field.default.name)
+      );
+
     if (field.kind === "object" || field.kind === "unsupported") return [];
     if (field.kind === "enum")
       return generateField(
@@ -22,16 +30,8 @@ export const generateModel = (model: DMMF.Model, config: Config) => {
           undefined
         ),
         !field.isRequired,
-        field.hasDefaultValue && !field.isId,
+        isGenerated,
         field.isList
-      );
-
-    const isGenerated =
-      field.hasDefaultValue &&
-      !(
-        typeof field.default === "object" &&
-        "name" in field.default &&
-        defaultTypesImplementedInJS.includes(field.default.name)
       );
 
     return generateField(
@@ -47,7 +47,8 @@ export const generateModel = (model: DMMF.Model, config: Config) => {
   });
 
   return {
-    name: model.name,
+    typeName: model.name,
+    tableName: model.dbName || model.name,
     definition: ts.factory.createTypeAliasDeclaration(
       [ts.factory.createModifier(ts.SyntaxKind.ExportKeyword)],
       ts.factory.createIdentifier(model.name),
